@@ -1,7 +1,0 @@
-Base image: node
-Cambiare directory in /app/src
-Creare la variabile d'ambiente build: REPO
-Clonare localmente il repository: git clone [repository] .
-Installare le dipendenze: npm install
-Dichiarare una variabile d'ambiente MESSAGE
-Lanciare il comando CMD della macchina: npm run dev
