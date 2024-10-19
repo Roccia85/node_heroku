@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: Heroku!
+    name: node_heroku
     env: node
     plan: free
     buildCommand: npm install
