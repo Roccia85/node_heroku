@@ -3,12 +3,12 @@ name: Publish Docker Image to Render
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       # Checkout the repository code
       - name: Checkout code
@@ -32,4 +32,3 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/node_heroku:latest
-
