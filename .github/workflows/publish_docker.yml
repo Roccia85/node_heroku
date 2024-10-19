@@ -31,4 +31,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/node_heroku:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/heroku_node:latest
