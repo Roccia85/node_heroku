@@ -1,86 +1,82 @@
 const request = require('supertest');
-require('dotenv').config();
-
 const app = require('./server');
 
-describe('HTTP Server Tests', () => {
-    let server;
+describe('Express Server Tests', () => {
+    const TEST_MESSAGE = 'Test message';
 
-    beforeAll(done => {
-        process.env.MESSAGE = "test message";
-        server = app.createServer();
-        server.listen(done);
+    beforeAll(() => {
+        process.env.MESSAGE = TEST_MESSAGE;
     });
 
-    afterAll(done => {
-        server.close(done);
+    afterAll(() => {
+        delete process.env.MESSAGE;
     });
 
-    describe('CORS Headers', () => {
-        it('should set correct CORS headers', async () => {
-            const response = await request(server).get('/');
+    describe('CORS and Headers', () => {
+        it('should enable CORS', async () => {
+            const response = await request(app).get('/');
 
             expect(response.headers['access-control-allow-origin']).toBe('*');
-            expect(response.headers['access-control-allow-methods'])
-                .toBe('GET, POST, OPTIONS, PUT, PATCH, DELETE');
-            expect(response.headers['access-control-allow-headers'])
-                .toBe('X-Requested-With,content-type');
-            expect(response.headers['access-control-allow-credentials'])
-                .toBe('true');
         });
 
         it('should handle OPTIONS request correctly', async () => {
-            const response = await request(server).options('/');
-            expect(response.status).toBe(200);
+            const response = await request(app).options('/');
+            expect(response.status).toBe(204); // Express CORS default response
         });
     });
 
     describe('GET Requests', () => {
         it('should return 200 and correct JSON response for GET request', async () => {
-            // Fai la richiesta
-            const response = await request(server).get('/');
+            const response = await request(app).get('/');
 
-            // Verifica lo status code e il content type
+            // Log per debug
+            console.log('Response body:', response.body);
+            console.log('Environment MESSAGE:', process.env.MESSAGE);
+
             expect(response.status).toBe(200);
             expect(response.headers['content-type']).toMatch(/application\/json/);
 
-            // Verifica la struttura e il contenuto del body
-            const body = response.body;
+            expect(response.body).toEqual({
+                message: TEST_MESSAGE,
+                timestamp: expect.any(String),
+                version: '1.0.0'
+            });
 
-            // Verifica che il body abbia tutte le proprietà attese
-            expect(body).toHaveProperty('message');
-            expect(body).toHaveProperty('timestamp');
-            expect(body).toHaveProperty('version');
+            expect(new Date(response.body.timestamp)).toBeInstanceOf(Date);
+        });
 
-            // Verifica i valori specifici
-            expect(body.message).toBe(process.env.MESSAGE);
-            expect(body.version).toBe('1.0.0');
+        it('should use default message when MESSAGE env is not set', async () => {
+            const originalMessage = process.env.MESSAGE;
+            delete process.env.MESSAGE;
 
-            // Verifica che timestamp sia una data valida
-            expect(new Date(body.timestamp)).toBeInstanceOf(Date);
+            const response = await request(app).get('/');
+            expect(response.body.message).toBe('Default message');
+
+            process.env.MESSAGE = originalMessage;
         });
     });
 
     describe('Other HTTP Methods', () => {
         it('should return 405 for POST requests', async () => {
-            const response = await request(server).post('/');
+            const response = await request(app).post('/');
 
             expect(response.status).toBe(405);
             expect(response.body).toEqual({ error: 'Method Not Allowed' });
         });
 
         it('should return 405 for PUT requests', async () => {
-            const response = await request(server).put('/');
+            const response = await request(app).put('/');
 
             expect(response.status).toBe(405);
             expect(response.body).toEqual({ error: 'Method Not Allowed' });
         });
 
         it('should return 405 for DELETE requests', async () => {
-            const response = await request(server).delete('/');
+            const response = await request(app).delete('/');
 
             expect(response.status).toBe(405);
             expect(response.body).toEqual({ error: 'Method Not Allowed' });
         });
     });
+
 });

@@ -1,38 +1,31 @@
-const http = require('http');
+const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 
-// Separa la logica del server dal suo avvio
-const app = {
-    createServer: () => {
-        return http.createServer((req, res) => {
-            // Aggiungi headers CORS
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-            res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-            res.setHeader('Access-Control-Allow-Credentials', true);
+const app = express();
 
-            // Gestisci le richieste OPTIONS per i preflight CORS
-            if (req.method === 'OPTIONS') {
-                res.writeHead(200);
-                res.end();
-                return;
-            }
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-            // Gestisci la richiesta normale
-            if (req.method === 'GET') {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({
-                    message: process.env.MESSAGE,
-                    timestamp: new Date(),
-                    version: '1.0.0'
-                }));
-            } else {
-                res.writeHead(405, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Method Not Allowed' }));
-            }
-        });
-    }
-};
+// Routes
+app.get('/', (req, res) => {
+    res.json({
+        message: process.env.MESSAGE || 'Default message',
+        timestamp: new Date(),
+        version: '1.0.0'
+    });
+});
 
-// Esporta l'app per i test
+// Handle non-GET methods
+app.all('/', (req, res) => {
+    res.status(405).json({ error: 'Method Not Allowed' });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Internal Server Error' });
+});
+
 module.exports = app;
