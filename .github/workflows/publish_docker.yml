@@ -19,9 +19,6 @@ jobs:
 
       - name: Run tests
         run: npm test
-        env:
-          MESSAGE: "Test message"
-          PORT: 3000
 
       - name: Upload test coverage
         uses: actions/upload-artifact@v3
