@@ -1,22 +1,18 @@
-const http = require('http');
 const request = require('supertest');
 require('dotenv').config();
 
-// Import server
-const app = require('./index'); // Assumendo che il codice del server sia in server.js
+const app = require('./server');
 
 describe('HTTP Server Tests', () => {
     let server;
 
-    beforeAll(() => {
-        // Configura un messaggio di test nell'ambiente
-        process.env.MESSAGE = 'Test message';
-        process.env.PORT = 3001;
-        server = http.createServer(app);
-        server.listen(process.env.PORT);
+    beforeAll(done => {
+        process.env.MESSAGE = "test message";
+        server = app.createServer();
+        server.listen(done);
     });
 
-    afterAll((done) => {
+    afterAll(done => {
         server.close(done);
     });
 
@@ -35,22 +31,30 @@ describe('HTTP Server Tests', () => {
 
         it('should handle OPTIONS request correctly', async () => {
             const response = await request(server).options('/');
-
             expect(response.status).toBe(200);
         });
     });
 
     describe('GET Requests', () => {
         it('should return 200 and correct JSON response for GET request', async () => {
+            // Fai la richiesta
             const response = await request(server).get('/');
 
+            // Verifica lo status code e il content type
             expect(response.status).toBe(200);
             expect(response.headers['content-type']).toMatch(/application\/json/);
 
+            // Verifica la struttura e il contenuto del body
             const body = response.body;
-            expect(body).toHaveProperty('message', process.env.MESSAGE);
+
+            // Verifica che il body abbia tutte le proprietà attese
+            expect(body).toHaveProperty('message');
             expect(body).toHaveProperty('timestamp');
-            expect(body).toHaveProperty('version', '1.0.0');
+            expect(body).toHaveProperty('version');
+
+            // Verifica i valori specifici
+            expect(body.message).toBe(process.env.MESSAGE);
+            expect(body.version).toBe('1.0.0');
 
             // Verifica che timestamp sia una data valida
             expect(new Date(body.timestamp)).toBeInstanceOf(Date);
