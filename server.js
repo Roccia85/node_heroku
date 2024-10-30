@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
 
 // Handle non-GET methods
 app.all('/', (req, res) => {
-    res.status(405).json({ error: 'Method Not Allowed' });
+    res.status(406).json({ error: 'Method Not Allowed' });
 });
 
 // Error handling middleware
